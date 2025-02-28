@@ -1,6 +1,8 @@
 *.vscode
 */.gitignore
 */.github
-*/.git
-*/.git
+*/*.git*
 *.exe
+*.user
+*/bin
+*/obj
