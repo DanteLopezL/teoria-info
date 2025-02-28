@@ -108,7 +108,7 @@ func (pd *ProblemData) evaluateMutualInfo() {
 
 		switch pd.DataType {
 		case Quantificables:
-			mutualInfo = -math.Log10(pd.Possibilities[i])
+			mutualInfo = -math.Log(pd.Possibilities[i])
 		case DataTransmition:
 			mutualInfo = -math.Log2(pd.Possibilities[i])
 		case StateTransitions:
