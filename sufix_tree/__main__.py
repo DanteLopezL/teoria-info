@@ -3,7 +3,7 @@ import json
 
 def main():
     tree = {}
-    word = 'ABABACA'
+    word = 'RGFABASABPUEFABASFWFDMOGFOASABASABABASABWM'
     repeated = []
     for char in word:
         if char not in repeated:
