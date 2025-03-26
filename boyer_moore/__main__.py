@@ -1,7 +1,7 @@
 
 NO_OF_CHARS = 256
 
-def bad_char_heuristic(string, size):
+def bad_char_heuristic(string : str, size : int):
     bad_char = [-1]*NO_OF_CHARS
 
     for i in range(size):
@@ -9,7 +9,7 @@ def bad_char_heuristic(string, size):
 
     return bad_char
 
-def print_alignment(txt, pat, shift):
+def print_alignment(txt : str, pat : str, shift : int):
 
     t_line = "T\t"
     p_line = "P\t"
@@ -25,7 +25,7 @@ def print_alignment(txt, pat, shift):
     print(t_line)
     print(p_line)
 
-def print_alignment_detailed(txt, pat, shift, bc=None, gs=None):
+def print_alignment_detailed(txt : str, pat : str, shift : int, bc=None, gs=None):
 
     print('-' * 60)
     t_line = "T\t"
@@ -48,7 +48,7 @@ def print_alignment_detailed(txt, pat, shift, bc=None, gs=None):
     print(p_line)
     print('-' * 60)
 
-def search(txt, pat, visualize=True):
+def search(txt : str, pat : str, visualize=True):
     m = len(pat)
     n = len(txt)
     
