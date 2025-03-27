@@ -15,8 +15,9 @@ def shanon(text: str) -> None:
             0 if i == 0 else base_matrix[i - 1, 1] + base_matrix[i - 1, 2]
         )
         base_matrix[i, 3] = math.ceil(math.log2(1 / base_matrix[i, 1]))
-        num = base_matrix[i, 2]
-        binaries.append("".join(map(str, binary_expansion(float(num)))))
+        num = int(base_matrix[i, 2])
+        lk = int(base_matrix[i, 3])
+        binaries.append("".join(map(str, binary_expansion(float(num), lk))))
 
     print(base_matrix)
     print(binaries)
