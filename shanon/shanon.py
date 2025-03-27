@@ -7,7 +7,7 @@ def shanon(text: str) -> None:
     frequencies = sort_and_order_frequencies(text)
     total_freq = sum(num for _, num in frequencies)
     base_matrix = np.zeros((len(frequencies), 4))
-    binaries = []
+    binaries: list[tuple] = []
     for i in range(len(frequencies)):
         base_matrix[i, 0] = frequencies[i][1]
         base_matrix[i, 1] = frequencies[i][1] / total_freq
@@ -15,8 +15,11 @@ def shanon(text: str) -> None:
             0 if i == 0 else base_matrix[i - 1, 1] + base_matrix[i - 1, 2]
         )
         base_matrix[i, 3] = math.ceil(math.log2(1 / base_matrix[i, 1]))
-        num = base_matrix[i, 2]
-        binaries.append("".join(map(str, binary_expansion(float(num)))))
+        num = float(base_matrix[i, 2])
+        lk = int(base_matrix[i, 3])
+        binaries.append(
+            (frequencies[i][0], str([i for i in binary_expansion(num, lk)]))
+        )
 
     print(base_matrix)
     print(binaries)
@@ -25,10 +28,10 @@ def shanon(text: str) -> None:
     print(f"lms: {lms} , rc: {rc}")
 
 
-def __run__():
+def main():
     text = "Jos sä tahdot niin tullen kalioden läpi"
     shanon(text)
 
 
 if __name__ == "__main__":
-    __run__()
+    main()

@@ -6,22 +6,23 @@ def sort_and_order_frequencies(text: str) -> list[tuple[str, int]]:
     return sorted(frequency.items(), key=lambda x: (-x[1], -ord(x[0])))
 
 
-def binary_expansion(num: float, tolerance: float = 1e-10) -> list[int]:
+def binary_expansion(num: float, lk: int) -> list[int]:
+    r = num
     expansion = []
     history = []
 
     while True:
-        if num >= float(1):
-            num = (num - 1) * 2
+        if r >= 1:
+            r = (r - 1) * 2
         else:
-            num *= 2
-        bit = 1 if num >= float(1) else 0
-        expansion.append((num, bit))
+            r *= 2
 
-        # Check for repeated numbers with a tolerance
-        if any(abs(num - h) < tolerance for h in history):
+        bit = 1 if r >= 1 else 0
+        expansion.append(bit)
+
+        if r in history:
             break
         else:
-            history.append(num)
-    sequence = [num for _, num in expansion]
-    return sequence
+            history.append(r)
+
+    return expansion[:lk] if lk <= len(expansion) else [0] * lk
