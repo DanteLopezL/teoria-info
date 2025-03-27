@@ -1,4 +1,4 @@
-def prefix_function(p : str ):
+def prefix_function(p: str):
     m = len(p)
     a = [0] * m
 
@@ -18,16 +18,14 @@ def prefix_function(p : str ):
             else:
                 a[i] = 0
                 i += 1
-    print( f'Prefix function {a}' )
+    print(f"Prefix function {a}")
     return a
 
 
-def search(p : str , s : str):
+def search(p: str, s: str):
     m = len(p)
     n = len(s)
 
-    # Create a[] that will hold the longest prefix
-    # suffix values for pattern
     a = prefix_function(p)
     result = []
 
@@ -50,8 +48,6 @@ def search(p : str , s : str):
 
 
 def main():
-
-
     # Driver code
     text = "ababababababacaabababacaababaca"
     pattern = "ababaca"
@@ -59,7 +55,7 @@ def main():
 
     # Print all the occurrences (1-based indices)
     for index in result:
-        print(index, end=' ')
+        print(index, end=" ")
 
 
 if __name__ == "__main__":
