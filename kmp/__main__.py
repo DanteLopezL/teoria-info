@@ -30,7 +30,7 @@ def search(p: str, s: str):
     result = []
 
     i = 0  # index for txt
-    j = 0  # index for pat
+    j = 0  # index for pattern
     while (n - i) >= (m - j):
         if p[j] == s[i]:
             j += 1
@@ -48,12 +48,10 @@ def search(p: str, s: str):
 
 
 def main():
-    # Driver code
-    text = "ababababababacaabababacaababaca"
+    text = "bacbabababacaab"
     pattern = "ababaca"
     result = search(pattern, text)
 
-    # Print all the occurrences (1-based indices)
     for index in result:
         print(index, end=" ")
 
