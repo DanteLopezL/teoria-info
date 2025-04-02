@@ -45,41 +45,50 @@ def generate_codes(
 
 
 def print_table(frequencies: list[tuple[str, int]], codes: dict[str, str]) -> None:
-    """Print a formatted table with character frequencies and codes.
+    """Print a formatted table with character frequencies and codes using Polars.
 
     Args:
         frequencies: List of (character, frequency) tuples
         codes: Dictionary mapping characters to their Huffman codes
     """
 
+    chars = [char for char, _ in frequencies]
+
     total, fi = calculate_fi(frequencies)
-    needed_chars = [len(codes[char]) for char in codes]
-    lms = sum(
-        x * y
-        for x, y in zip(
-            fi,
-            needed_chars,
-        )
+
+    freq_list = [freq for _, freq in frequencies]
+    code_list = [codes.get(char, "N/A") for char in chars]
+    needed_chars = [len(codes.get(char, "")) for char in chars]
+
+    # Calculate entropy for each character (-fi * log2(fi))
+    hi_list = [-fi[i] * log2(fi[i]) for i in range(len(frequencies))]
+    h = sum(hi_list)
+
+    lms = sum(f * nc for f, nc in zip(fi, needed_chars))
+
+    char_df = pl.DataFrame(
+        {
+            "CHAR": chars,
+            "FREQ": freq_list,
+            "Fi": fi,
+            "CODE": code_list,
+            "NEEDED_CHARS": needed_chars,
+            "Hi": hi_list,
+        }
     )
-    print(
-        pl.DataFrame(
-            {
-                "CHAR": [char for char, _ in frequencies],
-                "FREQ": [freq for _, freq in frequencies],
-                "Fi": fi,
-                "CODE": [codes[char] for char in codes],
-                "NEEDED CHARS": needed_chars,
-                "Hi": [-fi[i] * log2(fi[i]) for i in range(len(frequencies))],
-            }
-        ),
-        pl.DataFrame(
-            {
-                "LMS": lms,
-                "LME": 8,
-                "RC": lms / 8,
-            }
-        ),
+
+    summary_df = pl.DataFrame(
+        {
+            "METRIC": ["LMS", "LME", "RC", "H"],
+            "VALUE": [lms, 8, 8 / lms, h],
+        }
     )
+
+    print("\n=== HUFFMAN CODE TABLE ===")
+    print(char_df)
+
+    print("\n=== COMPRESSION METRICS ===")
+    print(summary_df)
 
 
 def calculate_compression(
@@ -94,13 +103,11 @@ def calculate_compression(
     Returns:
         Tuple of (original bits, compressed bits, compression ratio)
     """
-    # Original size in bits (assuming 8 bits per character)
+
     original_bits = len(original_text) * 8
 
-    # Compressed size in bits
     compressed_bits = sum(len(codes[char]) for char in original_text)
 
-    # Compression ratio
     ratio = compressed_bits / original_bits
 
     return original_bits, compressed_bits, ratio
@@ -129,7 +136,7 @@ def decode_text(encoded_text: str, tree: dict[str, tuple[str, str]]) -> str:
     Returns:
         Decoded original text
     """
-    # Build reversed lookup tree for decoding
+
     current_node = "origin"
     decoded_text = ""
 
@@ -158,10 +165,9 @@ def generate_table(
     Returns:
         Dictionary mapping characters to their Huffman codes
     """
-    # Generate codes from the tree
+
     codes = generate_codes(tree)
 
-    # Print the frequency table with codes
     print_table(frequencies, codes)
 
     # Print tree structure
@@ -207,16 +213,12 @@ def tree(frequencies: list[tuple[str, int]]) -> dict[str, tuple[str, str]]:
 
 
 def main():
-    # Example text
     text = "aaaabbbccccddeefgggggh"
 
-    # Get character frequencies
     frequencies = sort_and_order_frequencies(text)
 
-    # Build Huffman tree
     huffman_tree = tree(frequencies)
 
-    # Generate and display codes
     codes = generate_table(frequencies, huffman_tree)
 
     # Encode the text
