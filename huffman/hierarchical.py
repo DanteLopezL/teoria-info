@@ -1,16 +1,24 @@
 from utils.utils import sort_and_order_frequencies
 
 
-def print_table(frequencies: list[tuple[str, int]]):
+def print_table():
     pass
+
+
+def generate_table(
+    frequencies: list[tuple[str, int]], tree: dict[str, tuple[str, str]]
+):
+    print(frequencies)
+    print(tree)
 
 
 def tree(frequencies: list[tuple[str, int]]) -> dict[str, tuple[str, str]]:
     total = sum([i[1] for i in frequencies])
     encoding: list[tuple[str, float]] = []
     tree = {}
-    for i in range(len(frequencies)):
-        encoding.append((frequencies[i][0], frequencies[i][1] / total))
+
+    for char, count in frequencies:
+        encoding.append((char, count / total))
 
     for i in range(len(encoding) - 2):
         last = encoding[-1]
@@ -29,7 +37,7 @@ def main():
     text = "aaaabbbccccddeefgggggh"
     frequencies = sort_and_order_frequencies(text)
     huffman_tree = tree(frequencies)
-    print(huffman_tree)
+    generate_table(frequencies, huffman_tree)
 
 
 if __name__ == "__main__":
