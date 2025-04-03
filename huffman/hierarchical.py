@@ -14,7 +14,7 @@ def generate_codes(
     tree: dict[str, tuple[str, str]],
     node: str = "origin",
     code: str = "",
-    codes: dict = {},
+    codes: dict[str, str] = {},
 ) -> dict[str, str]:
     """Generate Huffman codes recursively from the tree.
 
