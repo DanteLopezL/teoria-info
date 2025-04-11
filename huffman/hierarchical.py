@@ -14,7 +14,7 @@ def generate_codes(
     tree: dict[str, tuple[str, str]],
     node: str = "origin",
     code: str = "",
-    codes: dict[str, str] = {},
+    codes=None,
 ) -> dict[str, str]:
     """Generate Huffman codes recursively from the tree.
 
@@ -27,10 +27,10 @@ def generate_codes(
     Returns:
         Dictionary mapping characters to their Huffman codes
     """
-    if codes is None:
-        codes = {}
 
     # If node not in tree, it's a leaf node (character)
+    if codes is None:
+        codes = {}
     if node not in tree:
         codes[node] = code
         return codes
@@ -178,7 +178,7 @@ def generate_table(
     return codes
 
 
-def tree(frequencies: list[tuple[str, int]]) -> dict[str, tuple[str, str]]:
+def generate_tree(frequencies: list[tuple[str, int]]) -> dict[str, tuple[str, str]]:
     """Build a Huffman tree from character frequencies.
 
     Args:
@@ -217,7 +217,7 @@ def main():
 
     frequencies = sort_and_order_frequencies(text)
 
-    huffman_tree = tree(frequencies)
+    huffman_tree = generate_tree(frequencies)
 
     codes = generate_table(frequencies, huffman_tree)
 
@@ -230,7 +230,7 @@ def main():
     # print(f"Decoded text: {decoded_text}")
 
     # Calculate compression
-    original_bits, compressed_bits, ratio = calculate_compression(text, codes)
+    _ = calculate_compression(text, codes)
     # print(f"\nOriginal size: {original_bits} bits")
     # print(f"Compressed size: {compressed_bits} bits")
     # print(f"Compression ratio: {ratio:.2%}")
