@@ -1,4 +1,7 @@
-def frequency_estimation(text: str, m: int, alpha: int = 0):
+import polars as pl
+
+
+def frequency_estimation(text: str, m: int, alpha: int = 0) -> dict[str, int]:
     """
     Estimate the frequencies of all possible m-grams (sequences of length 1 to m) in input data I.
 
@@ -30,7 +33,7 @@ def frequency_estimation(text: str, m: int, alpha: int = 0):
     return df
 
 
-if __name__ == "__main__":
+def main():
     text = "aaaaaaab"
     m = 3  # Maximum sequence length
     alpha = 1  # Weighting factor (α)
@@ -38,5 +41,12 @@ if __name__ == "__main__":
     frequencies = frequency_estimation(text, m, alpha)
 
     print("Sequence Frequencies (weighted by i^α):")
-    for seq in sorted(frequencies.keys(), key=lambda x: (len(x), x)):
-        print(f"'{seq}': {frequencies[seq]}")
+
+    keys = list(frequencies.keys())
+    values = list(frequencies.values())
+
+    print(pl.DataFrame({"keys": keys, "values": values}))
+
+
+if __name__ == "__main__":
+    main()
