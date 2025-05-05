@@ -1,4 +1,5 @@
 import polars as pl
+import typer
 
 
 def frequency_estimation(text: str, m: int, alpha: int = 0) -> dict[str, int]:
@@ -46,21 +47,29 @@ def frequency_estimation(text: str, m: int, alpha: int = 0) -> dict[str, int]:
     return df
 
 
-def main() -> None:
+def main(m: int = 3, alpha: int = 1) -> None:
     text = "aaaaaaab"
-    m = 3  # Maximum sequence length
-    alpha = 1  # Weighting factor (α)
 
     # Calculate weighted frequencies
-    frequencies = frequency_estimation(text, m, alpha)
+    frequencies = frequency_estimation(text, m)
+    weighted_frequencies = frequency_estimation(text, m, alpha)
 
     print("Sequence Frequencies (weighted by i^α):")
 
     # Convert results to a Polars DataFrame for nice display
-    keys = list(frequencies.keys())
+    keys = list(weighted_frequencies.keys())
     values = list(frequencies.values())
-    print(pl.DataFrame({"Sequence": keys, "Weighted Frequency": values}))
+    weighted_values = list(weighted_frequencies.values())
+    print(
+        pl.DataFrame(
+            {
+                "Sequence": keys,
+                "Frequency": values,
+                f"Weighted (a={alpha})": weighted_values,
+            }
+        )
+    )
 
 
 if __name__ == "__main__":
-    main()
+    typer.run(main)
