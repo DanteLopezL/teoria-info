@@ -2,7 +2,7 @@ import polars as pl
 import typer
 
 
-def frequency_estimation(text: str, m: int, alpha: int = 0) -> dict[str, int]:
+def frequency_estimation(text: str, n: int, m: int, alpha: int = 0) -> dict[str, int]:
     """Estimate weighted frequencies of all character sequences in a text.
 
     This function calculates the weighted frequencies of all possible character sequences
@@ -27,18 +27,12 @@ def frequency_estimation(text: str, m: int, alpha: int = 0) -> dict[str, int]:
         >>> frequency_estimation("aab", 2, 1)
         {'a': 2, 'a': 2, 'b': 1, 'aa': 2, 'ab': 2}
     """
-    n = len(text)
-    df = {}  # Dictionary to store frequencies
+
+    df: dict[str, int] = {}  # Dictionary to store frequencies
 
     for i in range(1, m + 1):  # i = 1, 2, ..., m
         for j in range(n - i + 1):  # Slide window over input
             s = text[j : j + i]  # Extract sequence of length i
-
-            # Convert to string if s is a list (for consistency)
-            if isinstance(s, list):
-                s = "".join(s)
-
-            # Update frequency in dictionary with length-based weighting
             if s in df:
                 df[s] += i**alpha
             else:
@@ -47,7 +41,7 @@ def frequency_estimation(text: str, m: int, alpha: int = 0) -> dict[str, int]:
     return df
 
 
-def optimal_coding():
+def optimal_coding(text: str, dc: dict[str, int], n: int, m: int) -> str | None:
     pass
 
 
@@ -55,14 +49,18 @@ def main(file: str, m: int = 3, alpha: int = 1) -> None:
     with open(file, "r", encoding="utf-8") as f:
         text = "".join(f.read().split())
 
-    frequencies = frequency_estimation(text, m)
+    n = len(text)
+    frequencies = frequency_estimation(text, n, m)
     weighted_frequencies = frequency_estimation(text, m, alpha)
 
-    print("Sequence Frequencies (weighted by i^α):")
+    # Find optimal coding using weighted frequencies as costs
+    optimal_code = optimal_coding(text, weighted_frequencies, n, m)
 
+    print("Sequence Frequencies (weighted by i^α):")
     keys = list(weighted_frequencies.keys())
     values = list(frequencies.values())
     weighted_values = list(weighted_frequencies.values())
+
     print(
         pl.DataFrame(
             {
@@ -72,6 +70,9 @@ def main(file: str, m: int = 3, alpha: int = 1) -> None:
             }
         )
     )
+
+    print("\nOptimal Coding:")
+    print(optimal_code)
 
 
 if __name__ == "__main__":
