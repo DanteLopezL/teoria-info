@@ -1,3 +1,4 @@
+from utils import utils
 import polars as pl
 import typer
 
@@ -42,7 +43,17 @@ def frequency_estimation(text: str, n: int, m: int, alpha: int = 0) -> dict[str,
 
 
 def optimal_coding(text: str, dc: dict[str, int], n: int, m: int) -> str | None:
-    pass
+    dn: dict[int, str] = {}
+    for e in range(n):
+        for i in range(e, min(m * e, n)):
+            k = i + 1
+            l = i + m
+            if l > n:
+                l = n
+
+            for j in range(k, l):
+                s = text[i:j]
+                c = dn[i]
 
 
 def main(file: str, m: int = 3, alpha: int = 1) -> None:
@@ -51,10 +62,7 @@ def main(file: str, m: int = 3, alpha: int = 1) -> None:
 
     n = len(text)
     frequencies = frequency_estimation(text, n, m)
-    weighted_frequencies = frequency_estimation(text, m, alpha)
-
-    # Find optimal coding using weighted frequencies as costs
-    optimal_code = optimal_coding(text, weighted_frequencies, n, m)
+    weighted_frequencies = frequency_estimation(text, n, m, alpha)
 
     print("Sequence Frequencies (weighted by i^α):")
     keys = list(weighted_frequencies.keys())
@@ -70,9 +78,10 @@ def main(file: str, m: int = 3, alpha: int = 1) -> None:
             }
         )
     )
-
-    print("\nOptimal Coding:")
-    print(optimal_code)
+    sorted_frequencies = dict(sorted(frequencies.items(), key=lambda x: (-x[1], x[0])))
+    tree = utils.generate_tree(sorted_frequencies)
+    codes = utils.generate_table(frequencies, tree)
+    print(codes)
 
 
 if __name__ == "__main__":
