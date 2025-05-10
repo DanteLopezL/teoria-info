@@ -42,21 +42,24 @@ def frequency_estimation(text: str, n: int, m: int, alpha: int = 0) -> dict[str,
     return df
 
 
-def optimal_coding(text: str, dc: dict[str, int], n: int, m: int) -> str | None:
-    dn: dict[int, str] = {}
+def optimal_coding(text: str, dc: dict[str, str], n: int, m: int):
+    dn: dict[int, str] = {0: ""}
     for e in range(n):
-        for i in range(e, min(m * e, n)):
+        for i in range(e, min(m * e + 1, n)):
             k = i + 1
-            l = i + m
-            if l > n:
-                l = n
+            l = min(i + m, n)
 
-            for j in range(k, l):
+            for j in range(k, l + 1):
                 s = text[i:j]
-                c = dn[i]
+                c = dn[i] + dc[s]
+
+                if dn[j] is None or len(dn[i]) > len(c):
+                    dn[j] = c
+
+    return dn
 
 
-def main(file: str, m: int = 3, alpha: int = 1) -> None:
+def main(file: str, m: int = 3, alpha: int = 1, sort: bool = False) -> None:
     with open(file, "r", encoding="utf-8") as f:
         text = "".join(f.read().split())
 
@@ -80,8 +83,14 @@ def main(file: str, m: int = 3, alpha: int = 1) -> None:
     )
     sorted_frequencies = dict(sorted(frequencies.items(), key=lambda x: (-x[1], x[0])))
     tree = utils.generate_tree(sorted_frequencies)
-    codes = utils.generate_table(frequencies, tree)
-    print(codes)
+    dc = (
+        utils.generate_table(sorted_frequencies, tree)
+        if sort
+        else utils.generate_table(frequencies, tree)
+    )
+    print(dc)
+    dn = optimal_coding(text, dc, n, m)
+    print("===DN===", dn)
 
 
 if __name__ == "__main__":
