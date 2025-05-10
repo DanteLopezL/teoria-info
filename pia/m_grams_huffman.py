@@ -42,7 +42,7 @@ def frequency_estimation(text: str, n: int, m: int, alpha: int = 0) -> dict[str,
     return df
 
 
-def optimal_coding(text: str, dc: dict[str, str], n: int, m: int):
+def optimal_coding(text: str, dc: dict[str, str], n: int, m: int) -> str:
     dn: dict[int, str] = {0: ""}
     for e in range(n):
         for i in range(e, min(m * e + 1, n)):
@@ -51,12 +51,16 @@ def optimal_coding(text: str, dc: dict[str, str], n: int, m: int):
 
             for j in range(k, l + 1):
                 s = text[i:j]
+
+                if s not in dc:
+                    continue
+
                 c = dn[i] + dc[s]
 
-                if dn[j] is None or len(dn[i]) > len(c):
+                if j not in dn or len(dn[i]) > len(c):
                     dn[j] = c
 
-    return dn
+    return dn.get(n, "")
 
 
 def main(file: str, m: int = 3, alpha: int = 1, sort: bool = False) -> None:
