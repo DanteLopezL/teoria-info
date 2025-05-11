@@ -124,9 +124,10 @@ def main(file: str, m: int = 3, alpha: int = 1, sort: bool = False) -> None:
         if sort
         else utils.generate_table(frequencies, tree)
     )
-    print(dc)
+
     dn = optimal_coding(text, dc, n, m)
-    print("===DN===", dn)
+
+    print(pl.DataFrame({"Input (I)": text, "Optimal coding (dn)": dn}))
 
 
 if __name__ == "__main__":
