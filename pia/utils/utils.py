@@ -129,11 +129,6 @@ def generate_table(
 
     print_table(frequencies, codes)
 
-    # Print tree structure
-    print("\nTree structure:")
-    for node, (left, right) in tree.items():
-        print(f"{node} -> ({left}, {right})")
-
     return codes
 
 

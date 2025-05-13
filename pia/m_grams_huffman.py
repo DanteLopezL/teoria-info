@@ -10,6 +10,7 @@ Typical usage:
     python script.py input.txt --m 3 --alpha 1 --sort
 """
 
+from datetime import datetime, time, timedelta
 from utils import utils
 import polars as pl
 import typer
@@ -101,7 +102,9 @@ def approximate_coding(text: str, dc: dict[str, str], n: int, m: int) -> str:
     return c
 
 
-def main(file: str, m: int = 3, alpha: int = 1, sort: bool = False) -> None:
+def main(
+    file: str, m: int = 3, alpha: int = 1, sort: bool = False, heuristic: bool = False
+) -> None:
     """Main function to analyze text and generate optimal encoding.
 
     Args:
@@ -146,14 +149,25 @@ def main(file: str, m: int = 3, alpha: int = 1, sort: bool = False) -> None:
         else utils.generate_table(frequencies, tree)
     )
 
-    dn = optimal_coding(text, dc, n, m)
-    ac = approximate_coding(text, dc, n, m)
+    if not heuristic:
+        dn = optimal_coding(text, dc, n, m)
+        ac = approximate_coding(text, dc, n, m)
 
-    print(
-        pl.DataFrame(
-            {"Input (I)": text, "Optimal coding (dn)": dn, "Aproximate coding (ac)": ac}
+        print(
+            pl.DataFrame(
+                {
+                    "Input (I)": text,
+                    "Optimal coding (dn)": dn,
+                    "Aproximate coding (ac)": ac,
+                }
+            )
         )
-    )
+    else:
+        start = datetime.now()
+        ac = approximate_coding(text, dc, n, m)
+        print(pl.DataFrame({"Input (I)": text, "Aproximate coding (ac)": ac}))
+        end = datetime.now()
+        print(f"Time lapsed: {end - start}")
 
 
 if __name__ == "__main__":
