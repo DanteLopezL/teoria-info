@@ -112,46 +112,6 @@ def calculate_compression(
     return original_bits, compressed_bits, ratio
 
 
-def encode_text(text: str, codes: dict[str, str]) -> str:
-    """Encode the input text using Huffman codes.
-
-    Args:
-        text: The input text
-        codes: Dictionary mapping characters to their Huffman codes
-
-    Returns:
-        Encoded binary string
-    """
-    return "".join(codes[char] for char in text)
-
-
-def decode_text(encoded_text: str, tree: dict[str, tuple[str, str]]) -> str:
-    """Decode a Huffman-encoded text.
-
-    Args:
-        encoded_text: Binary string of Huffman-encoded text
-        tree: The Huffman tree dictionary
-
-    Returns:
-        Decoded original text
-    """
-
-    current_node = "origin"
-    decoded_text = ""
-
-    for bit in encoded_text:
-        # Move left or right in the tree
-        left, right = tree[current_node]
-        current_node = left if bit == "0" else right
-
-        # If we reached a leaf node (character)
-        if current_node not in tree:
-            decoded_text += current_node
-            current_node = "origin"  # Reset to root
-
-    return decoded_text
-
-
 def generate_table(
     frequencies: dict[str, int], tree: dict[str, tuple[str, str]]
 ) -> dict[str, str]:
