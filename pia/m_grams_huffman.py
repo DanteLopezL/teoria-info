@@ -80,6 +80,28 @@ def optimal_coding(text: str, dc: dict[str, str], n: int, m: int) -> str:
     return dn.get(n, "")
 
 
+def approximate_coding(text: str, dc: dict[str, str], n: int, m: int) -> str:
+    c = ""
+    i = 0
+    while i < n:
+        r = 0  # best ratio found value
+        l = 0  # end of best rato sequence
+        for k in range(1, m + 1):
+            j = i + k
+            if j > n:
+                j = n
+
+            s = text[i:j]
+            c = dc[s]
+            t = len(s) / len(c)
+            if t > r:
+                r = t
+                l = j
+        c = c + dc[text[i:l]]
+        i = l
+    return c
+
+
 def main(file: str, m: int = 3, alpha: int = 1, sort: bool = False) -> None:
     """Main function to analyze text and generate optimal encoding.
 
@@ -126,8 +148,13 @@ def main(file: str, m: int = 3, alpha: int = 1, sort: bool = False) -> None:
     )
 
     dn = optimal_coding(text, dc, n, m)
+    ac = approximate_coding(text, dc, n, m)
 
-    print(pl.DataFrame({"Input (I)": text, "Optimal coding (dn)": dn}))
+    print(
+        pl.DataFrame(
+            {"Input (I)": text, "Optimal coding (dn)": dn, "Aproximate coding (ac)": ac}
+        )
+    )
 
 
 if __name__ == "__main__":
