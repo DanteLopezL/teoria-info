@@ -90,10 +90,9 @@ def approximate_coding(text: str, dc: dict[str, str], n: int, m: int) -> str:
             j = i + k
             if j > n:
                 j = n
-
             s = text[i:j]
-            c = dc[s]
-            t = len(s) / len(c)
+            codeword = dc[s]
+            t = len(s) / len(codeword)
             if t > r:
                 r = t
                 l = j
