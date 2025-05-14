@@ -135,12 +135,11 @@ def main(
     n = len(text)
     frequencies = frequency_estimation(text, n, m)
     weighted_frequencies = frequency_estimation(text, n, m, alpha)
-
-    print("Sequence Frequencies (weighted by i^α):")
     keys = list(weighted_frequencies.keys())
     values = list(frequencies.values())
     weighted_values = list(weighted_frequencies.values())
 
+    print("Sequence Frequencies (weighted by i^α):")
     print(
         pl.DataFrame(
             {
@@ -151,12 +150,8 @@ def main(
         )
     )
     sorted_frequencies = dict(sorted(frequencies.items(), key=lambda x: (-x[1], x[0])))
-    tree = utils.generate_tree(sorted_frequencies)
-    dc = (
-        utils.generate_table(sorted_frequencies, tree)
-        if sort
-        else utils.generate_table(frequencies, tree)
-    )
+
+    dc: dict[str, str] = {}
 
     if not heuristic and not optimal:
         dn = optimal_coding(text, dc, n, m)
@@ -174,13 +169,13 @@ def main(
     elif heuristic:
         start = datetime.now()
         ac = approximate_coding(text, dc, n, m)
-        print(pl.DataFrame({"Input (I)": text, "Aproximate coding (ac)": ac}))
+        print(pl.DataFrame({"Input (I)": text, "Approximate coding (ac)": ac}))
         end = datetime.now()
         print(f"Time lapsed: {end - start}")
     else:
         start = datetime.now()
-        ac = optimal_coding(text, dc, n, m)
-        print(pl.DataFrame({"Input (I)": text, "Aproximate coding (ac)": ac}))
+        oc = optimal_coding(text, dc, n, m)
+        print(pl.DataFrame({"Input (I)": text, "Optimal coding (c)": oc}))
         end = datetime.now()
         print(f"Time lapsed: {end - start}")
 
