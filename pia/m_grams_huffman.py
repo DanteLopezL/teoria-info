@@ -10,7 +10,7 @@ Typical usage:
     python script.py input.txt --m 3 --alpha 1 --sort
 """
 
-from datetime import datetime, time, timedelta
+from datetime import datetime
 from utils import utils
 import polars as pl
 import typer
@@ -102,8 +102,17 @@ def approximate_coding(text: str, dc: dict[str, str], n: int, m: int) -> str:
     return c
 
 
+def decode(code: str):
+    pass
+
+
 def main(
-    file: str, m: int = 3, alpha: int = 1, sort: bool = False, heuristic: bool = False
+    file: str,
+    m: int = 3,
+    alpha: int = 1,
+    sort: bool = False,
+    heuristic: bool = False,
+    optimal: bool = False,
 ) -> None:
     """Main function to analyze text and generate optimal encoding.
 
@@ -149,7 +158,7 @@ def main(
         else utils.generate_table(frequencies, tree)
     )
 
-    if not heuristic:
+    if not heuristic and not optimal:
         dn = optimal_coding(text, dc, n, m)
         ac = approximate_coding(text, dc, n, m)
 
@@ -162,9 +171,15 @@ def main(
                 }
             )
         )
-    else:
+    elif heuristic:
         start = datetime.now()
         ac = approximate_coding(text, dc, n, m)
+        print(pl.DataFrame({"Input (I)": text, "Aproximate coding (ac)": ac}))
+        end = datetime.now()
+        print(f"Time lapsed: {end - start}")
+    else:
+        start = datetime.now()
+        ac = optimal_coding(text, dc, n, m)
         print(pl.DataFrame({"Input (I)": text, "Aproximate coding (ac)": ac}))
         end = datetime.now()
         print(f"Time lapsed: {end - start}")
