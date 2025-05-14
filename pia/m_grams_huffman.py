@@ -16,36 +16,6 @@ import polars as pl
 import typer
 
 
-def frequency_estimation(text: str, n: int, m: int, alpha: int = 0) -> dict[str, int]:
-    """Calculate weighted frequencies of character sequences in text.
-
-    Args:
-        text: Input string to analyze
-        n: Length of input text
-        m: Maximum sequence length to consider
-        alpha: Weighting exponent (0 = no weighting)
-
-    Returns:
-        Dictionary mapping sequences to their weighted frequencies
-        where weights are length^alpha
-
-    Example:
-        >>> frequency_estimation("aab", 3, 2, 1)
-        {'a': 2, 'b': 1, 'aa': 2, 'ab': 2}
-    """
-    df: dict[str, int] = {}  # Dictionary to store frequencies
-
-    for i in range(1, m + 1):  # i = 1, 2, ..., m
-        for j in range(n - i + 1):  # Slide window over input
-            s = text[j : j + i]  # Extract sequence of length i
-            if s in df:
-                df[s] += i**alpha
-            else:
-                df[s] = i**alpha
-
-    return df
-
-
 def optimal_coding(text: str, dc: dict[str, str], n: int, m: int) -> str:
     """Generate optimal encoding for text using provided coding table.
 
@@ -102,10 +72,6 @@ def approximate_coding(text: str, dc: dict[str, str], n: int, m: int) -> str:
     return c
 
 
-def decode(code: str):
-    pass
-
-
 def main(
     file: str,
     m: int = 3,
@@ -133,9 +99,9 @@ def main(
         text = "".join(f.read().split())
 
     n = len(text)
-    frequencies = frequency_estimation(text, n, m)
-    weighted_frequencies = frequency_estimation(text, n, m, alpha)
-    keys = list(weighted_frequencies.keys())
+    frequencies = utils.frequency_estimation(text, n, m)
+    weighted_frequencies = utils.frequency_estimation(text, n, m, alpha)
+    keys = list(frequencies.keys())
     values = list(frequencies.values())
     weighted_values = list(weighted_frequencies.values())
 
