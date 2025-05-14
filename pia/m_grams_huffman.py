@@ -1,15 +1,3 @@
-"""Text Sequence Frequency Analysis and Optimal Coding Tool
-
-This module provides functionality for:
-1. Analyzing character sequence frequencies with length-based weighting
-2. Generating optimal encodings using dynamic programming
-3. Displaying results in tabular format using Polars
-4. Command-line interface via Typer
-
-Typical usage:
-    python script.py input.txt --m 3 --alpha 1 --sort
-"""
-
 from datetime import datetime
 from utils import utils
 import polars as pl
