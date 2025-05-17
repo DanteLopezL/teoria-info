@@ -1,171 +1,161 @@
-from math import log2
-import polars as pl
+from typing import Optional
+import heapq
 
 
-def calculate_fi(frequencies: dict[str, int]) -> tuple[int, list[float]]:
-    total = sum([i for i in frequencies.values()])
-    fi = [i / total for i in frequencies.values()]
+class Node:
+    """Node for Huffman tree construction"""
 
-    return total, fi
+    def __init__(self, symbol: str | None, frequency: int):
+        self.symbol: str | None = symbol
+        self.frequency: int = frequency
+        self.left: Optional[Node] = None
+        self.right: Optional[Node] = None
+
+    def __lt__(self, other: "Node") -> bool:
+        return self.frequency < other.frequency
 
 
-def generate_codes(
-    tree: dict[str, tuple[str, str]],
-    node: str = "origin",
-    code: str = "",
-    codes=None,
-) -> dict[str, str]:
-    """Generate Huffman codes recursively from the tree.
+def huffman(frequencies: dict[str, int]) -> dict[str, str]:
+    """
+    Implement Huffman coding as described in the document.
 
     Args:
-        tree: The Huffman tree dictionary
-        node: Current node in traversal
-        code: Current code accumulated during traversal
-        codes: Dictionary to store character codes
+        frequencies: Dictionary mapping symbols to their frequencies
 
     Returns:
-        Dictionary mapping characters to their Huffman codes
+        Dictionary mapping symbols to their Huffman codes
     """
+    if not frequencies:
+        return {}
 
-    # If node not in tree, it's a leaf node (character)
-    if codes is None:
-        codes = {}
-    if node not in tree:
-        codes[node] = code
-        return codes
+    # Step 1: Create initial forest of nodes
+    forest: list[Node] = [Node(symbol, freq) for symbol, freq in frequencies.items()]
 
-    left, right = tree[node]
+    # Step 2: Build Huffman tree by iteratively combining trees with lowest frequencies
 
-    # Recurse left (0) and right (1)
-    generate_codes(tree, left, code + "0", codes)
-    generate_codes(tree, right, code + "1", codes)
+    heapq.heapify(forest)  # Convert forest to a min heap
 
+    # Special case: only one symbol
+    if len(forest) == 1:
+        node = forest[0]
+        return {node.symbol: "0"} if node.symbol is not None else {}
+
+    # Iterate until only one tree remains
+    while len(forest) > 1:
+        # Find two trees with lowest frequencies
+        left = heapq.heappop(forest)
+        right = heapq.heappop(forest)
+
+        # Create a new internal node with these two nodes as children
+        new_node = Node(None, left.frequency + right.frequency)
+        new_node.left = left
+        new_node.right = right
+
+        # Add the new tree back to the forest
+        heapq.heappush(forest, new_node)
+
+    # The remaining tree is the Huffman code tree
+    tree_root = forest[0]
+
+    # Step 3: Generate codewords by traversing the tree from root to each leaf
+    # where '0' describes the left and '1' the right subtree
+    codes: dict[str, str] = {}
+
+    def assign_codes(node: Optional[Node], code: str = "") -> None:
+        if node:
+            if node.symbol is not None:  # Leaf node
+                codes[node.symbol] = code
+            # Traverse left with '0'
+            assign_codes(node.left, code + "0")
+            # Traverse right with '1'
+            assign_codes(node.right, code + "1")
+
+    assign_codes(tree_root)
     return codes
 
 
-def print_table(frequencies: dict[str, int], codes: dict[str, str]) -> None:
-    """Print a formatted table with character frequencies and codes using Polars.
-
-    Args:
-        frequencies: List of (character, frequency) tuples
-        codes: Dictionary mapping characters to their Huffman codes
+def decode(encoded_data: str, codes: dict[str, str]) -> str:
     """
-
-    chars = [char for char in frequencies.keys()]
-
-    total, fi = calculate_fi(frequencies)
-
-    freq_list = [freq for freq in frequencies.values()]
-    code_list = [codes.get(char, "N/A") for char in chars]
-    needed_chars = [len(codes.get(char, "")) for char in chars]
-
-    # Calculate entropy for each character (-fi * log2(fi))
-    hi_list = [-fi[i] * log2(fi[i]) for i in range(len(frequencies))]
-    h = sum(hi_list)
-
-    lms = sum(f * nc for f, nc in zip(fi, needed_chars))
-
-    char_df = pl.DataFrame(
-        {
-            "CHAR": chars,
-            "FREQ": freq_list,
-            "Fi": fi,
-            "CODE": code_list,
-            "NEEDED_CHARS": needed_chars,
-            "Hi": hi_list,
-        }
-    )
-
-    summary_df = pl.DataFrame(
-        {
-            "METRIC": ["LMS", "LME", "RC", "H"],
-            "VALUE": [lms, 8, 8 / lms, h],
-        }
-    )
-
-    print("\n=== HUFFMAN CODE TABLE ===")
-    print(char_df)
-
-    print("\n=== COMPRESSION METRICS ===")
-    print(summary_df)
-
-
-def calculate_compression(
-    original_text: str, codes: dict[str, str]
-) -> tuple[int, int, float]:
-    """Calculate compression statistics.
+    Decode Huffman-encoded data using the provided codes.
 
     Args:
-        original_text: The input text
-        codes: Dictionary mapping characters to their Huffman codes
+        encoded_data: The binary string of encoded data
+        codes: Dictionary mapping symbols to their Huffman codes
 
     Returns:
-        Tuple of (original bits, compressed bits, compression ratio)
+        Decoded string
     """
+    if not encoded_data or not codes:
+        return ""
 
-    original_bits = len(original_text) * 8
+    # Build Huffman tree for efficient decoding
+    root = Node(None, 0)  # Root node
 
-    compressed_bits = sum(len(codes[char]) for char in original_text)
+    # Insert all codes into the tree
+    for symbol, code in codes.items():
+        current = root
 
-    ratio = compressed_bits / original_bits
+        # Traverse the tree according to the code
+        for bit in code:
+            if bit == "0":
+                if current.left is None:
+                    current.left = Node(None, 0)
+                current = current.left
+            else:  # bit == '1'
+                if current.right is None:
+                    current.right = Node(None, 0)
+                current = current.right
 
-    return original_bits, compressed_bits, ratio
+        # Set the symbol at the leaf node
+        current.symbol = symbol
+
+    # Decode using the tree
+    result: list[str] = []
+    current = root
+
+    for bit in encoded_data:
+        if bit == "0":
+            current = current.left
+        else:  # bit == '1'
+            current = current.right
+
+        if current is None:
+            # Invalid encoding
+            return ""
+
+        # If we reached a leaf node
+        if current.symbol is not None:
+            result.append(current.symbol)
+            current = root  # Reset to the root for the next symbol
+
+    return "".join(result)
 
 
-def generate_table(
-    frequencies: dict[str, int], tree: dict[str, tuple[str, str]]
-) -> dict[str, str]:
-    """Generate and display Huffman coding table and statistics.
+def frequency_estimation(text: str, n: int, m: int, alpha: int = 0) -> dict[str, int]:
+    """Calculate weighted frequencies of character sequences in text.
 
     Args:
-        frequencies: List of (character, frequency) tuples
-        tree: The Huffman tree dictionary
+        text: Input string to analyze
+        n: Length of input text
+        m: Maximum sequence length to consider
+        alpha: Weighting exponent (0 = no weighting)
 
     Returns:
-        Dictionary mapping characters to their Huffman codes
+        Dictionary mapping sequences to their weighted frequencies
+        where weights are length^alpha
+
+    Example:
+        >>> frequency_estimation("aab", 3, 2, 1)
+        {'a': 2, 'b': 1, 'aa': 2, 'ab': 2}
     """
+    df: dict[str, int] = {}  # Dictionary to store frequencies
 
-    codes = generate_codes(tree)
+    for i in range(1, m + 1):  # i = 1, 2, ..., m
+        for j in range(n - i + 1):  # Slide window over input
+            s = text[j : j + i]  # Extract sequence of length i
+            if s in df:
+                df[s] += i**alpha
+            else:
+                df[s] = i**alpha
 
-    print_table(frequencies, codes)
-
-    # Print tree structure
-    print("\nTree structure:")
-    for node, (left, right) in tree.items():
-        print(f"{node} -> ({left}, {right})")
-
-    return codes
-
-
-def generate_tree(frequencies: dict[str, int]) -> dict[str, tuple[str, str]]:
-    """Build a Huffman tree from character frequencies.
-
-    Args:
-        frequencies: List of (character, frequency) tuples
-
-    Returns:
-        Dictionary representing the Huffman tree
-    """
-    total = sum([i for i in frequencies.values()])
-    encoding: list[tuple[str, float]] = []
-    tree = {}
-
-    # Convert frequencies to probabilities
-    for char, count in frequencies.items():
-        encoding.append((char, count / total))
-
-    # Build the tree bottom-up
-    for i in range(len(encoding) - 2):
-        last = encoding[-1]
-        penultimate = encoding[-2]
-        del encoding[-2:]
-        new = (f"o{i + 1}", last[1] + penultimate[1])
-        encoding.append(new)
-        encoding = sorted(encoding, key=lambda x: (-x[1], x[0]))
-        tree[new[0]] = (penultimate[0], last[0])
-
-    # Add the root node
-    tree["origin"] = (encoding[-2][0], encoding[-1][0])
-
-    # Return reversed tree (from root to leaves)
-    return dict(reversed(tree.items()))
+    return df

@@ -1,48 +1,7 @@
-"""Text Sequence Frequency Analysis and Optimal Coding Tool
-
-This module provides functionality for:
-1. Analyzing character sequence frequencies with length-based weighting
-2. Generating optimal encodings using dynamic programming
-3. Displaying results in tabular format using Polars
-4. Command-line interface via Typer
-
-Typical usage:
-    python script.py input.txt --m 3 --alpha 1 --sort
-"""
-
+from datetime import datetime
 from utils import utils
 import polars as pl
 import typer
-
-
-def frequency_estimation(text: str, n: int, m: int, alpha: int = 0) -> dict[str, int]:
-    """Calculate weighted frequencies of character sequences in text.
-
-    Args:
-        text: Input string to analyze
-        n: Length of input text
-        m: Maximum sequence length to consider
-        alpha: Weighting exponent (0 = no weighting)
-
-    Returns:
-        Dictionary mapping sequences to their weighted frequencies
-        where weights are length^alpha
-
-    Example:
-        >>> frequency_estimation("aab", 3, 2, 1)
-        {'a': 2, 'b': 1, 'aa': 2, 'ab': 2}
-    """
-    df: dict[str, int] = {}  # Dictionary to store frequencies
-
-    for i in range(1, m + 1):  # i = 1, 2, ..., m
-        for j in range(n - i + 1):  # Slide window over input
-            s = text[j : j + i]  # Extract sequence of length i
-            if s in df:
-                df[s] += i**alpha
-            else:
-                df[s] = i**alpha
-
-    return df
 
 
 def optimal_coding(text: str, dc: dict[str, str], n: int, m: int) -> str:
@@ -101,7 +60,14 @@ def approximate_coding(text: str, dc: dict[str, str], n: int, m: int) -> str:
     return c
 
 
-def main(file: str, m: int = 3, alpha: int = 1, sort: bool = False) -> None:
+def main(
+    file: str,
+    m: int = 3,
+    alpha: int = 1,
+    sort: bool = False,
+    heuristic: bool = False,
+    optimal: bool = False,
+) -> None:
     """Main function to analyze text and generate optimal encoding.
 
     Args:
@@ -121,14 +87,13 @@ def main(file: str, m: int = 3, alpha: int = 1, sort: bool = False) -> None:
         text = "".join(f.read().split())
 
     n = len(text)
-    frequencies = frequency_estimation(text, n, m)
-    weighted_frequencies = frequency_estimation(text, n, m, alpha)
-
-    print("Sequence Frequencies (weighted by i^α):")
-    keys = list(weighted_frequencies.keys())
+    frequencies = utils.frequency_estimation(text, n, m)
+    weighted_frequencies = utils.frequency_estimation(text, n, m, alpha)
+    keys = list(frequencies.keys())
     values = list(frequencies.values())
     weighted_values = list(weighted_frequencies.values())
 
+    print("Sequence Frequencies (weighted by i^α):")
     print(
         pl.DataFrame(
             {
@@ -139,21 +104,35 @@ def main(file: str, m: int = 3, alpha: int = 1, sort: bool = False) -> None:
         )
     )
     sorted_frequencies = dict(sorted(frequencies.items(), key=lambda x: (-x[1], x[0])))
-    tree = utils.generate_tree(sorted_frequencies)
-    dc = (
-        utils.generate_table(sorted_frequencies, tree)
-        if sort
-        else utils.generate_table(frequencies, tree)
-    )
 
-    dn = optimal_coding(text, dc, n, m)
-    ac = approximate_coding(text, dc, n, m)
+    dc = utils.huffman(sorted_frequencies)
 
-    print(
-        pl.DataFrame(
-            {"Input (I)": text, "Optimal coding (dn)": dn, "Aproximate coding (ac)": ac}
+    if not heuristic and not optimal:
+        oc = optimal_coding(text, dc, n, m)
+        ac = approximate_coding(text, dc, n, m)
+
+        print(
+            pl.DataFrame(
+                {
+                    "Input (I)": text,
+                    "Optimal coding (dn)": oc,
+                    "Aproximate coding (ac)": ac,
+                }
+            )
         )
-    )
+
+    elif heuristic:
+        start = datetime.now()
+        ac = approximate_coding(text, dc, n, m)
+        print(pl.DataFrame({"Input (I)": text, "Approximate coding (ac)": ac}))
+        end = datetime.now()
+        print(f"Time lapsed: {end - start}")
+    else:
+        start = datetime.now()
+        oc = optimal_coding(text, dc, n, m)
+        print(pl.DataFrame({"Input (I)": text, "Optimal coding (c)": oc}))
+        end = datetime.now()
+        print(f"Time lapsed: {end - start}")
 
 
 if __name__ == "__main__":
