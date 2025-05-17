@@ -105,21 +105,22 @@ def main(
     )
     sorted_frequencies = dict(sorted(frequencies.items(), key=lambda x: (-x[1], x[0])))
 
-    dc: dict[str, str] = {}
+    dc = utils.huffman(sorted_frequencies)
 
     if not heuristic and not optimal:
-        dn = optimal_coding(text, dc, n, m)
+        oc = optimal_coding(text, dc, n, m)
         ac = approximate_coding(text, dc, n, m)
 
         print(
             pl.DataFrame(
                 {
                     "Input (I)": text,
-                    "Optimal coding (dn)": dn,
+                    "Optimal coding (dn)": oc,
                     "Aproximate coding (ac)": ac,
                 }
             )
         )
+
     elif heuristic:
         start = datetime.now()
         ac = approximate_coding(text, dc, n, m)

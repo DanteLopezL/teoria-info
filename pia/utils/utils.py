@@ -1,5 +1,134 @@
-def decode(code: str):
-    pass
+from typing import Optional
+import heapq
+
+
+class Node:
+    """Node for Huffman tree construction"""
+
+    def __init__(self, symbol: str | None, frequency: int):
+        self.symbol: str | None = symbol
+        self.frequency: int = frequency
+        self.left: Optional[Node] = None
+        self.right: Optional[Node] = None
+
+    def __lt__(self, other: "Node") -> bool:
+        return self.frequency < other.frequency
+
+
+def huffman(frequencies: dict[str, int]) -> dict[str, str]:
+    """
+    Implement Huffman coding as described in the document.
+
+    Args:
+        frequencies: Dictionary mapping symbols to their frequencies
+
+    Returns:
+        Dictionary mapping symbols to their Huffman codes
+    """
+    if not frequencies:
+        return {}
+
+    # Step 1: Create initial forest of nodes
+    forest: list[Node] = [Node(symbol, freq) for symbol, freq in frequencies.items()]
+
+    # Step 2: Build Huffman tree by iteratively combining trees with lowest frequencies
+
+    heapq.heapify(forest)  # Convert forest to a min heap
+
+    # Special case: only one symbol
+    if len(forest) == 1:
+        node = forest[0]
+        return {node.symbol: "0"} if node.symbol is not None else {}
+
+    # Iterate until only one tree remains
+    while len(forest) > 1:
+        # Find two trees with lowest frequencies
+        left = heapq.heappop(forest)
+        right = heapq.heappop(forest)
+
+        # Create a new internal node with these two nodes as children
+        new_node = Node(None, left.frequency + right.frequency)
+        new_node.left = left
+        new_node.right = right
+
+        # Add the new tree back to the forest
+        heapq.heappush(forest, new_node)
+
+    # The remaining tree is the Huffman code tree
+    tree_root = forest[0]
+
+    # Step 3: Generate codewords by traversing the tree from root to each leaf
+    # where '0' describes the left and '1' the right subtree
+    codes: dict[str, str] = {}
+
+    def assign_codes(node: Optional[Node], code: str = "") -> None:
+        if node:
+            if node.symbol is not None:  # Leaf node
+                codes[node.symbol] = code
+            # Traverse left with '0'
+            assign_codes(node.left, code + "0")
+            # Traverse right with '1'
+            assign_codes(node.right, code + "1")
+
+    assign_codes(tree_root)
+    return codes
+
+
+def decode(encoded_data: str, codes: dict[str, str]) -> str:
+    """
+    Decode Huffman-encoded data using the provided codes.
+
+    Args:
+        encoded_data: The binary string of encoded data
+        codes: Dictionary mapping symbols to their Huffman codes
+
+    Returns:
+        Decoded string
+    """
+    if not encoded_data or not codes:
+        return ""
+
+    # Build Huffman tree for efficient decoding
+    root = Node(None, 0)  # Root node
+
+    # Insert all codes into the tree
+    for symbol, code in codes.items():
+        current = root
+
+        # Traverse the tree according to the code
+        for bit in code:
+            if bit == "0":
+                if current.left is None:
+                    current.left = Node(None, 0)
+                current = current.left
+            else:  # bit == '1'
+                if current.right is None:
+                    current.right = Node(None, 0)
+                current = current.right
+
+        # Set the symbol at the leaf node
+        current.symbol = symbol
+
+    # Decode using the tree
+    result: list[str] = []
+    current = root
+
+    for bit in encoded_data:
+        if bit == "0":
+            current = current.left
+        else:  # bit == '1'
+            current = current.right
+
+        if current is None:
+            # Invalid encoding
+            return ""
+
+        # If we reached a leaf node
+        if current.symbol is not None:
+            result.append(current.symbol)
+            current = root  # Reset to the root for the next symbol
+
+    return "".join(result)
 
 
 def frequency_estimation(text: str, n: int, m: int, alpha: int = 0) -> dict[str, int]:
