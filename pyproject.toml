@@ -9,3 +9,4 @@ dependencies = ["numpy>=2.2.3", "polars>=1.26.0", "typer>=0.15.3"]
 [tool.pyright]
 venvPath = "."
 venv = ".venv"
+pythonVersion = "3.13"

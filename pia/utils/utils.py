@@ -88,45 +88,38 @@ def decode(encoded_data: str, codes: dict[str, str]) -> str:
     if not encoded_data or not codes:
         return ""
 
-    # Build Huffman tree for efficient decoding
-    root = Node(None, 0)  # Root node
+    root = Node(None, 0)
 
-    # Insert all codes into the tree
     for symbol, code in codes.items():
         current = root
 
-        # Traverse the tree according to the code
         for bit in code:
             if bit == "0":
                 if current.left is None:
                     current.left = Node(None, 0)
                 current = current.left
-            else:  # bit == '1'
+            else:
                 if current.right is None:
                     current.right = Node(None, 0)
                 current = current.right
 
-        # Set the symbol at the leaf node
         current.symbol = symbol
 
-    # Decode using the tree
     result: list[str] = []
     current = root
 
     for bit in encoded_data:
         if bit == "0":
             current = current.left
-        else:  # bit == '1'
+        else:
             current = current.right
 
         if current is None:
-            # Invalid encoding
             return ""
 
-        # If we reached a leaf node
         if current.symbol is not None:
             result.append(current.symbol)
-            current = root  # Reset to the root for the next symbol
+            current = root
 
     return "".join(result)
 
@@ -159,3 +152,7 @@ def frequency_estimation(text: str, n: int, m: int, alpha: int = 0) -> dict[str,
                 df[s] = i**alpha
 
     return df
+
+
+def compression_ratio(text_size: int, encoded_size: int) -> float:
+    return encoded_size / text_size
