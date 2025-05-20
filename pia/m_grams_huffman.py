@@ -1,4 +1,3 @@
-from datetime import datetime
 from utils import utils
 import polars as pl
 import typer
@@ -103,7 +102,9 @@ def main(
             }
         )
     )
-    sorted_frequencies = dict(sorted(frequencies.items(), key=lambda x: (-x[1], x[0])))
+    sorted_frequencies = dict(
+        sorted(weighted_frequencies.items(), key=lambda x: (-x[1], x[0]))
+    )
 
     dc = utils.huffman(sorted_frequencies)
 
@@ -120,19 +121,51 @@ def main(
                 }
             )
         )
+        text_size = len(text)
+        optimal_cr = utils.compression_ratio(text_size, len(oc))
+        optimal_cr = utils.compression_ratio(text_size, len(ac))
+
+        print(
+            pl.DataFrame(
+                {
+                    "m": m,
+                    "a": alpha,
+                    "Optimal compression": optimal_cr,
+                    "Approximate compression": optimal_cr,
+                }
+            )
+        )
 
     elif heuristic:
-        start = datetime.now()
         ac = approximate_coding(text, dc, n, m)
         print(pl.DataFrame({"Input (I)": text, "Approximate coding (ac)": ac}))
-        end = datetime.now()
-        print(f"Time lapsed: {end - start}")
+
+        text_size = len(text)
+        optimal_cr = utils.compression_ratio(text_size, len(ac))
+
+        print(
+            pl.DataFrame(
+                {
+                    "m": m,
+                    "a": alpha,
+                    "Approximate compression": optimal_cr,
+                }
+            )
+        )
     else:
-        start = datetime.now()
         oc = optimal_coding(text, dc, n, m)
         print(pl.DataFrame({"Input (I)": text, "Optimal coding (c)": oc}))
-        end = datetime.now()
-        print(f"Time lapsed: {end - start}")
+        text_size = len(text)
+        optimal_cr = utils.compression_ratio(text_size, len(oc))
+        print(
+            pl.DataFrame(
+                {
+                    "m": m,
+                    "a": alpha,
+                    "Approximate compression": optimal_cr,
+                }
+            )
+        )
 
 
 if __name__ == "__main__":
