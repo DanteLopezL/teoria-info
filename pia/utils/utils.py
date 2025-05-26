@@ -160,12 +160,16 @@ def compression_ratio(text_size: int, encoded_size: int) -> float:
 
 
 def longest_repeated_suffix(text: str) -> str:
-    n = len(text)
-    for i in range(n):
-        suffix = text[i:]
-        if text.count(suffix) > 1:
-            return suffix
-    return ""
+    suffix = ''
+    j   = 1
+    for i in range(len(text) ):
+        longest = text[i:i+j]
+        temp    = text[i+1:]
+        while longest in temp:
+            suffix = longest
+            j += 1
+            longest = text[i:i+j]
+    return suffix
 
 
 def calculate_entropy(frequencies: list[int]) -> float:
