@@ -1,3 +1,4 @@
+from math import log2
 from typing import Optional
 import heapq
 
@@ -156,3 +157,22 @@ def frequency_estimation(text: str, n: int, m: int, alpha: int = 0) -> dict[str,
 
 def compression_ratio(text_size: int, encoded_size: int) -> float:
     return encoded_size / text_size
+
+
+def longest_repeated_suffix(text: str) -> str:
+    n = len(text)
+    for i in range(n):
+        suffix = text[i:]
+        if text.count(suffix) > 1:
+            return suffix
+    return ""
+
+
+def calculate_entropy(frequencies: list[int]) -> float:
+    total = sum([freq for freq in frequencies])
+    fi = [freq / total for freq in frequencies]
+    return sum([-fi[i] * log2(fi[i]) for i in range(len(frequencies))])
+
+
+def get_best_entropy_rc_ratio():
+    pass
