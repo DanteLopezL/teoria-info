@@ -159,24 +159,7 @@ def compression_ratio(text_size: int, encoded_size: int) -> float:
     return encoded_size / text_size
 
 
-def longest_repeated_suffix(text: str) -> str:
-    suffix = ''
-    j   = 1
-    for i in range(len(text) ):
-        longest = text[i:i+j]
-        temp    = text[i+1:]
-        while longest in temp:
-            suffix = longest
-            j += 1
-            longest = text[i:i+j]
-    return suffix
-
-
-def calculate_entropy(frequencies: list[int]) -> float:
+def calculate_entropy(frequencies: list[int], m: int) -> float:
     total = sum([freq for freq in frequencies])
-    fi = [freq / total for freq in frequencies]
-    return sum([-fi[i] * log2(fi[i]) for i in range(len(frequencies))])
-
-
-def get_best_entropy_rc_ratio():
-    pass
+    pi = [freq / total for freq in frequencies]
+    return -sum([pi[i] * log2(pi[i]) for i in range(len(frequencies))]) / m
