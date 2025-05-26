@@ -1,3 +1,4 @@
+from math import log2
 from typing import Optional
 import heapq
 
@@ -156,3 +157,9 @@ def frequency_estimation(text: str, n: int, m: int, alpha: int = 0) -> dict[str,
 
 def compression_ratio(text_size: int, encoded_size: int) -> float:
     return encoded_size / text_size
+
+
+def calculate_entropy(frequencies: list[int], m: int) -> float:
+    total = sum([freq for freq in frequencies])
+    pi = [freq / total for freq in frequencies]
+    return -sum([pi[i] * log2(pi[i]) for i in range(len(frequencies))]) / m
