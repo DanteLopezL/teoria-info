@@ -1,7 +1,6 @@
 from utils import utils
 import polars as pl
 import typer
-from pickletools import long1
 
 
 def optimal_coding(text: str, dc: dict[str, str], n: int, m: int) -> str:
@@ -75,8 +74,6 @@ def main(
     keys = list(frequencies.keys())
     values = list(frequencies.values())
 
-    print("Longest repeated suffix", utils.longest_repeated_suffix(text))
-
     print("Sequence Frequencies (weighted by i^α):")
     print(
         "===FREQUENCIES===",
@@ -90,6 +87,8 @@ def main(
     sorted_frequencies = dict(sorted(frequencies.items(), key=lambda x: (-x[1], x[0])))
 
     dc = utils.huffman(sorted_frequencies)
+
+    dc = dict(sorted(dc.items()))
 
     print(
         "===CODEWORDS===",
@@ -105,7 +104,7 @@ def main(
 
         text_size = len(text)
         compression_ratio = utils.compression_ratio(text_size, len(ac))
-        entropy = utils.calculate_entropy(values)
+        entropy = utils.calculate_entropy(values, m)
 
         print(
             "===ADDITIONAL DATA===",
@@ -120,17 +119,25 @@ def main(
         )
     elif optimal:
         oc = optimal_coding(text, dc, n, m)
-        print(pl.DataFrame({"Input (I)": text, "Optimal coding (c)": oc}))
+        print(
+            "===ENCODED===",
+            pl.DataFrame({"Input (I)": text, "Optimal coding (oc)": oc}),
+        )
+
         text_size = len(text)
         compression_ratio = utils.compression_ratio(text_size, len(oc))
+        entropy = utils.calculate_entropy(values, m)
+
         print(
+            "===ADDITIONAL DATA===",
             pl.DataFrame(
                 {
                     "m": m,
                     "a": alpha,
-                    "Approximate compression": compression_ratio,
+                    "Compression ratio": compression_ratio,
+                    "Entropy": entropy,
                 }
-            )
+            ),
         )
 
 
