@@ -4,7 +4,13 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = ["numpy>=2.2.3", "polars>=1.26.0", "typer>=0.15.3"]
+dependencies = [
+    "numpy>=2.2.3",
+    "pandas>=2.2.3",
+    "polars>=1.26.0",
+    "scipy>=1.15.3",
+    "typer>=0.15.3",
+]
 
 [tool.pyright]
 venvPath = "."
