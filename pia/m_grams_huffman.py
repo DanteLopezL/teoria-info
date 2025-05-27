@@ -4,20 +4,6 @@ import typer
 
 
 def optimal_coding(text: str, dc: dict[str, str], n: int, m: int) -> str:
-    """Generate optimal encoding for text using provided coding table.
-
-    Args:
-        text: Input text to encode
-        dc: Dictionary mapping sequences to codes
-        n: Length of input text
-        m: Maximum sequence length to consider
-
-    Returns:
-        Optimally encoded string
-
-    Note:
-        Uses dynamic programming to find most efficient encoding
-    """
     dn: dict[int, str] = {0: ""}
     for e in range(n):
         for i in range(e, min(m * e + 1, n)):
@@ -86,7 +72,7 @@ def main(
     )
     sorted_frequencies = dict(sorted(frequencies.items(), key=lambda x: (-x[1], x[0])))
 
-    dc = utils.huffman(sorted_frequencies)
+    dc, root = utils.huffman(sorted_frequencies)
 
     dc = dict(sorted(dc.items()))
 
@@ -139,6 +125,9 @@ def main(
                 }
             ),
         )
+
+    if root:
+        utils.plot_tree(root)
 
 
 if __name__ == "__main__":

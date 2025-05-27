@@ -1,91 +1,81 @@
 from math import log2
 from typing import Optional
 import heapq
+import matplotlib.pyplot as plt
 
 
 class Node:
-    """Node for Huffman tree construction"""
-
     def __init__(self, symbol: str | None, frequency: int):
         self.symbol: str | None = symbol
         self.frequency: int = frequency
-        self.left: Optional[Node] = None
-        self.right: Optional[Node] = None
+        self.left: Node | None = None
+        self.right: Node | None = None
 
     def __lt__(self, other: "Node") -> bool:
         return self.frequency < other.frequency
 
 
-def huffman(frequencies: dict[str, int]) -> dict[str, str]:
-    """
-    Implement Huffman coding as described in the document.
-
-    Args:
-        frequencies: Dictionary mapping symbols to their frequencies
-
-    Returns:
-        Dictionary mapping symbols to their Huffman codes
-    """
+def huffman(frequencies: dict[str, int]) -> tuple[dict[str, str], Node | None]:
     if not frequencies:
-        return {}
+        return {}, None
 
-    # Step 1: Create initial forest of nodes
-    forest: list[Node] = [Node(symbol, freq) for symbol, freq in frequencies.items()]
+    forest = [Node(symbol, freq) for symbol, freq in frequencies.items()]
+    heapq.heapify(forest)
 
-    # Step 2: Build Huffman tree by iteratively combining trees with lowest frequencies
-
-    heapq.heapify(forest)  # Convert forest to a min heap
-
-    # Special case: only one symbol
     if len(forest) == 1:
         node = forest[0]
-        return {node.symbol: "0"} if node.symbol is not None else {}
+        return {node.symbol: "0"} if node.symbol is not None else {}, node
 
-    # Iterate until only one tree remains
     while len(forest) > 1:
-        # Find two trees with lowest frequencies
         left = heapq.heappop(forest)
         right = heapq.heappop(forest)
-
-        # Create a new internal node with these two nodes as children
         new_node = Node(None, left.frequency + right.frequency)
         new_node.left = left
         new_node.right = right
-
-        # Add the new tree back to the forest
         heapq.heappush(forest, new_node)
 
-    # The remaining tree is the Huffman code tree
     tree_root = forest[0]
-
-    # Step 3: Generate codewords by traversing the tree from root to each leaf
-    # where '0' describes the left and '1' the right subtree
     codes: dict[str, str] = {}
 
     def assign_codes(node: Optional[Node], code: str = "") -> None:
         if node:
-            if node.symbol is not None:  # Leaf node
+            if node.symbol is not None:
                 codes[node.symbol] = code
-            # Traverse left with '0'
             assign_codes(node.left, code + "0")
-            # Traverse right with '1'
             assign_codes(node.right, code + "1")
 
     assign_codes(tree_root)
-    return codes
+    return codes, tree_root
+
+
+def plot_tree(root: Node):
+    _, ax = plt.subplots()
+    ax.axis("off")
+
+    def _plot_node(node: Node, x: float, y: float, dx: float, dy: float):
+        label = (
+            f"{node.symbol}:{node.frequency}" if node.symbol else f"{node.frequency}"
+        )
+        ax.text(
+            x, y, label, ha="center", va="center", bbox=dict(boxstyle="round", fc="w")
+        )
+
+        if node.left:
+            ax.plot([x, x - dx], [y, y - dy], "k-")
+            ax.text(x - dx / 2, y - dy / 2, "0", ha="center", va="center")
+            _plot_node(node.left, x - dx, y - dy, dx * 0.6, dy)
+
+        if node.right:
+            ax.plot([x, x + dx], [y, y - dy], "k-")
+            ax.text(x + dx / 2, y - dy / 2, "1", ha="center", va="center")
+            _plot_node(node.right, x + dx, y - dy, dx * 0.6, dy)
+
+    _plot_node(root, x=0, y=0, dx=1.0, dy=1.0)
+    plt.tight_layout()
+    plt.show()
 
 
 def decode(encoded_data: str, codes: dict[str, str]) -> str:
-    """
-    Decode Huffman-encoded data using the provided codes.
-
-    Args:
-        encoded_data: The binary string of encoded data
-        codes: Dictionary mapping symbols to their Huffman codes
-
-    Returns:
-        Decoded string
-    """
     if not encoded_data or not codes:
         return ""
 
@@ -163,3 +153,10 @@ def calculate_entropy(frequencies: list[int], m: int) -> float:
     total = sum([freq for freq in frequencies])
     pi = [freq / total for freq in frequencies]
     return -sum([pi[i] * log2(pi[i]) for i in range(len(frequencies))]) / m
+
+
+def validate_m(options: list[int], n:int):
+    for i in options:
+        if i > n:
+            print(f"{i} cant be greater than {n} (n), removing")
+            options.remove(i)
