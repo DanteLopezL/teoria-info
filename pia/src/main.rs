@@ -8,18 +8,7 @@ use polars::prelude::*;
 
 mod utils;
 
-/// Generate optimal encoding for text using provided coding table.
-///
-/// # Arguments
-///
-/// * `text` - Input text to encode
-/// * `dc` - HashMap mapping sequences to codes
-/// * `n` - Length of input text
-/// * `m` - Maximum sequence length to consider
-///
-/// # Returns
-///
-/// Optimally encoded string
+
 fn optimal_coding(text: &str, dc: &HashMap<String, String>, n: usize, m: usize) -> String {
     let mut dp: HashMap<usize, String> = HashMap::new();
     dp.insert(0, String::new());
@@ -54,18 +43,7 @@ fn optimal_coding(text: &str, dc: &HashMap<String, String>, n: usize, m: usize) 
     dp.get(&n).cloned().unwrap_or_default()
 }
 
-/// Generate approximate encoding for text using provided coding table.
-///
-/// # Arguments
-///
-/// * `text` - Input text to encode
-/// * `dc` - HashMap mapping sequences to codes
-/// * `n` - Length of input text
-/// * `m` - Maximum sequence length to consider
-///
-/// # Returns
-///
-/// Approximately encoded string
+
 fn approximate_coding(text: &str, dc: &HashMap<String, String>, n: usize, m: usize) -> String {
     let mut c = String::new();
     let mut i = 0;
