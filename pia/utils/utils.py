@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 class Node:
     def __init__(self, symbol: str | None, frequency: int):
-        self.symbol: str | None = symbol
+        self.sequence: str | None = symbol
         self.frequency: int = frequency
         self.left: Node | None = None
         self.right: Node | None = None
@@ -24,7 +24,7 @@ def huffman(frequencies: dict[str, int]) -> tuple[dict[str, str], Node | None]:
 
     if len(forest) == 1:
         node = forest[0]
-        return {node.symbol: "0"} if node.symbol is not None else {}, node
+        return {node.sequence: "0"} if node.sequence is not None else {}, node
 
     while len(forest) > 1:
         left = heapq.heappop(forest)
@@ -39,8 +39,8 @@ def huffman(frequencies: dict[str, int]) -> tuple[dict[str, str], Node | None]:
 
     def assign_codes(node: Optional[Node], code: str = "") -> None:
         if node:
-            if node.symbol is not None:
-                codes[node.symbol] = code
+            if node.sequence is not None:
+                codes[node.sequence] = code
             assign_codes(node.left, code + "0")
             assign_codes(node.right, code + "1")
 
@@ -54,7 +54,7 @@ def plot_tree(root: Node):
 
     def _plot_node(node: Node, x: float, y: float, dx: float, dy: float):
         label = (
-            f"{node.symbol}:{node.frequency}" if node.symbol else f"{node.frequency}"
+            f"{node.sequence}:{node.frequency}" if node.sequence else f"{node.frequency}"
         )
         ax.text(
             x, y, label, ha="center", va="center", bbox=dict(boxstyle="round", fc="w")
@@ -94,7 +94,7 @@ def decode(encoded_data: str, codes: dict[str, str]) -> str:
                     current.right = Node(None, 0)
                 current = current.right
 
-        current.symbol = symbol
+        current.sequence = symbol
 
     result: list[str] = []
     current = root
@@ -108,8 +108,8 @@ def decode(encoded_data: str, codes: dict[str, str]) -> str:
         if current is None:
             return ""
 
-        if current.symbol is not None:
-            result.append(current.symbol)
+        if current.sequence is not None:
+            result.append(current.sequence)
             current = root
 
     return "".join(result)
