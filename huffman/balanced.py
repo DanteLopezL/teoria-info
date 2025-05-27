@@ -1,11 +1,85 @@
-from utils.utils import sort_and_order_frequencies
 
+from heapq import heappush, heappop
+from collections import Counter
+
+class NodoHuffman:
+    def __init__(self, caracter, frecuencia):
+        self.caracter = caracter
+        self.frecuencia = frecuencia
+        self.izquierda = None
+        self.derecha = None
+
+
+    def __lt__(self, other): # Defr operadores de comparacion
+        return self.frecuencia < other.frecuencia
+
+def construir_arbol_huffman(frecuencias):
+
+    heap = []
+    for caracter, frecuencia in frecuencias.items():
+        heappush(heap, NodoHuffman(caracter, frecuencia))
+
+    while len(heap) > 1:
+        # Sacar los dos nodos con menor frecuencia
+        nodo1 = heappop(heap)
+        nodo2 = heappop(heap)
+
+        # Crear un nuevo nodo combinado
+        nuevo_nodo = NodoHuffman(None, nodo1.frecuencia + nodo2.frecuencia)
+        nuevo_nodo.izquierda = nodo1
+        nuevo_nodo.derecha = nodo2
+
+        heappush(heap, nuevo_nodo)
+
+    return heappop(heap)
+
+def generar_codificacion_huffman(nodo, prefijo="", codigos={}):
+
+    if nodo is None:
+        return
+
+    if nodo.caracter is not None:
+        codigos[nodo.caracter] = prefijo
+
+    generar_codificacion_huffman(nodo.izquierda, prefijo + "0", codigos)
+    generar_codificacion_huffman(nodo.derecha, prefijo + "1", codigos)
+
+    return codigos
+
+def calcular_frecuencias(texto):
+
+    total_caracteres = len(texto)
+    frecuencia_total = Counter(texto)
+    frecuencia_relativa = {caracter: freq / total_caracteres for caracter, freq in frecuencia_total.items()}
+    return frecuencia_total, frecuencia_relativa
+
+def preprocesar_texto(texto):
+
+    return texto.lower().replace(" ", "").replace("\n", "")
 
 def main():
-    text = "aaaabbbccccddeefgggggh"
-    frequencies = sort_and_order_frequencies(text)
-    print(frequencies)
+    print("Programa para construir una tabla de codificación Huffman.")
+    texto = input("Introduce el texto: ")
 
+    # Preprocesar el texto
+    texto_procesado = preprocesar_texto(texto)
+    print("\nTexto procesado:")
+    print(texto_procesado)
+
+    # Calcular frecuencias
+    frecuencia_total, frecuencia_relativa = calcular_frecuencias(texto_procesado)
+    print("\nFrecuencias de los caracteres:")
+    for caracter, freq in frecuencia_total.items():
+        print(f"Carácter '{caracter}': Total = {freq}, Relativa = {frecuencia_relativa[caracter]:.4f}")
+
+    # Construir arbol de Huffman
+    arbol_huffman = construir_arbol_huffman(frecuencia_total)
+
+    # Generar la tabla de codificacion binaria
+    codificacion_huffman = generar_codificacion_huffman(arbol_huffman)
+    print("\nTabla de codificación binaria (Huffman):")
+    for caracter, codigo in codificacion_huffman.items():
+        print(f"Carácter '{caracter}': Código binario = {codigo}")
 
 if __name__ == "__main__":
     main()
