@@ -1,6 +1,7 @@
 from utils import utils
 import polars as pl
 import typer
+from typing import List
 
 
 def optimal_coding(text: str, dc: dict[str, str], n: int, m: int) -> str:
@@ -47,87 +48,94 @@ def approximate_coding(text: str, dc: dict[str, str], n: int, m: int) -> str:
 
 def main(
     file: str,
-    m: int = 1,
-    alpha: int = 0,
     heuristic: bool = False,
     optimal: bool = False,
+    alpha: int = 0,
 ) -> None:
     with open(file, "r", encoding="utf-8") as f:
         text = "".join(f.read().split())
 
     n = len(text)
-    frequencies = utils.frequency_estimation(text, n, m, alpha)
-    keys = list(frequencies.keys())
-    values = list(frequencies.values())
 
-    print("Sequence Frequencies (weighted by i^α):")
-    print(
-        "===FREQUENCIES===",
-        pl.DataFrame(
-            {
-                "Sequence": keys,
-                "Frequency": values,
-            }
-        ),
-    )
-    sorted_frequencies = dict(sorted(frequencies.items(), key=lambda x: (-x[1], x[0])))
+    max_m_range = utils.get_m_optimal_range(text)
+    print(f"Using m range from 1 to {max_m_range}")
 
-    dc, root = utils.huffman(sorted_frequencies)
+    for m in range(1, max_m_range):
+        print(f"\n=== Processing for m = {m} ===")
 
-    dc = dict(sorted(dc.items()))
+        frequencies = utils.frequency_estimation(text, n, m, alpha)
+        keys = list(frequencies.keys())
+        values = list(frequencies.values())
 
-    print(
-        "===CODEWORDS===",
-        pl.DataFrame({"Sequence": dc.keys(), "Codeword": dc.values()}),
-    )
-
-    if heuristic:
-        ac = approximate_coding(text, dc, n, m)
+        print("Sequence Frequencies (weighted by i^α):")
         print(
-            "===ENCODED===",
-            pl.DataFrame({"Input (I)": text, "Approximate coding (ac)": ac}),
-        )
-
-        text_size = len(text)
-        compression_ratio = utils.compression_ratio(text_size, len(ac))
-        entropy = utils.calculate_entropy(values, m)
-
-        print(
-            "===ADDITIONAL DATA===",
+            "===FREQUENCIES===",
             pl.DataFrame(
                 {
-                    "m": m,
-                    "a": alpha,
-                    "Compression ratio": compression_ratio,
-                    "Entropy": entropy,
-                }
-            ),
-        )
-    elif optimal:
-        oc = optimal_coding(text, dc, n, m)
-        print(
-            "===ENCODED===",
-            pl.DataFrame({"Input (I)": text, "Optimal coding (oc)": oc}),
-        )
-
-        text_size = len(text)
-        compression_ratio = utils.compression_ratio(text_size, len(oc))
-        entropy = utils.calculate_entropy(values, m)
-
-        print(
-            "===ADDITIONAL DATA===",
-            pl.DataFrame(
-                {
-                    "m": m,
-                    "a": alpha,
-                    "Compression ratio": compression_ratio,
-                    "Entropy": entropy,
+                    "Sequence": keys,
+                    "Frequency": values,
                 }
             ),
         )
 
-    if root:
-        utils.plot_tree(root)
+        sorted_frequencies = dict(
+            sorted(frequencies.items(), key=lambda x: (-x[1], x[0]))
+        )
+
+        dc, root = utils.huffman(sorted_frequencies)
+        dc = dict(sorted(dc.items()))
+
+        print(
+            "===CODEWORDS===",
+            pl.DataFrame({"Sequence": dc.keys(), "Codeword": dc.values()}),
+        )
+
+        if heuristic:
+            ac = approximate_coding(text, dc, n, m)
+            print(
+                "===ENCODED===",
+                pl.DataFrame({"Input (I)": text, "Approximate coding (ac)": ac}),
+            )
+
+            compression_ratio = utils.compression_ratio(len(text), len(ac))
+            entropy = utils.calculate_entropy(values, m)
+
+            print(
+                "===ADDITIONAL DATA===",
+                pl.DataFrame(
+                    {
+                        "m": m,
+                        "a": alpha,
+                        "Compression ratio": compression_ratio,
+                        "Entropy": entropy,
+                    }
+                ),
+            )
+
+        if optimal:
+            oc = optimal_coding(text, dc, n, m)
+            print(
+                "===ENCODED===",
+                pl.DataFrame({"Input (I)": text, "Optimal coding (oc)": oc}),
+            )
+
+            compression_ratio = utils.compression_ratio(len(text), len(oc))
+            entropy = utils.calculate_entropy(values, m)
+
+            print(
+                "===ADDITIONAL DATA===",
+                pl.DataFrame(
+                    {
+                        "m": m,
+                        "a": alpha,
+                        "Compression ratio": compression_ratio,
+                        "Entropy": entropy,
+                    }
+                ),
+            )
+
+        if root:
+            utils.plot_tree(root, m)
 
 
 if __name__ == "__main__":

@@ -48,13 +48,16 @@ def huffman(frequencies: dict[str, int]) -> tuple[dict[str, str], Node | None]:
     return codes, tree_root
 
 
-def plot_tree(root: Node):
+def plot_tree(root: Node, m: int):
     _, ax = plt.subplots()
     ax.axis("off")
+    ax.set_title(f"m = {m}")
 
     def _plot_node(node: Node, x: float, y: float, dx: float, dy: float):
         label = (
-            f"{node.sequence}:{node.frequency}" if node.sequence else f"{node.frequency}"
+            f"{node.sequence}:{node.frequency}"
+            if node.sequence
+            else f"{node.frequency}"
         )
         ax.text(
             x, y, label, ha="center", va="center", bbox=dict(boxstyle="round", fc="w")
@@ -155,8 +158,11 @@ def calculate_entropy(frequencies: list[int], m: int) -> float:
     return -sum([pi[i] * log2(pi[i]) for i in range(len(frequencies))]) / m
 
 
-def validate_m(options: list[int], n:int):
-    for i in options:
-        if i > n:
-            print(f"{i} cant be greater than {n} (n), removing")
-            options.remove(i)
+def get_m_optimal_range(text: str) -> int:
+    n = len(text)
+    for m in range(n - 1, 0, -1):
+        for i in range(0, n - m + 1):
+            candidate = text[i : i + m]
+            if text.find(candidate, i + 1) != -1:
+                return m
+    return 1
