@@ -1,12 +1,12 @@
-def suma_digitos(numero):
-    suma = 0
-    numero_str = str(numero)
-    for digito in numero_str:
-        suma += int(digito)
-    return suma
+def digit_sum(num : int):
+    result = 0
+    num_str = str(num)
+    for digit in num_str:
+        result += int(digit)
+    return result
 
 
-def compresion_lz77(
+def lz77(
     ruta_archivo, tam_ventana_historia, tam_ventana_futura, archivo_salida
 ):
     with open(ruta_archivo, "r") as archivo:
@@ -86,26 +86,22 @@ def compresion_lz77(
 
 
 def main():
-    # Parámetros de configuración. cONFIGURAR CON EL NOMBRE DEL ARCHIVO NECESARIO
-    ruta_archivo = "a.txt"
+    text_route = "lyrics.txt"
 
-    snm = 7  # suma_digitos(matricula)
+    window_size = 38
 
-    print(f"Usando ventana : {snm}")
-    tam_ventana_historia = round(snm * (2 / 3))
-    print(f"El tamaño de la ventana histórica es: {tam_ventana_historia}")
+    print(f"Usando ventana : {window_size}")
+    history = round(window_size * (2 / 3))
+    print(f"El tamaño de la ventana histórica es: {history}")
 
-    tam_ventana_futura = snm - tam_ventana_historia
-    print(f"El tamaño de la ventana futura es: {tam_ventana_futura}")
+    lookahead = window_size - history
+    print(f"El tamaño de la ventana futura es: {lookahead}")
 
-    archivo_salida = f"results{snm}.txt"
+    output = f"results{window_size}.txt"
 
-    ## EJECUTABLE
-    resultado = compresion_lz77(
-        ruta_archivo, tam_ventana_historia, tam_ventana_futura, archivo_salida
-    )
+    lz77(text_route, history, lookahead, output)
 
-    print(f"Resultados guardados en {archivo_salida}")
+    print(f"Resultados guardados en {output}")
 
 
 if __name__ == "__main__":
