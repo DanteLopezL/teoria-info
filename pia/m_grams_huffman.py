@@ -1,7 +1,6 @@
 from utils import utils
 import polars as pl
 import typer
-from typing import List
 
 
 def optimal_coding(text: str, dc: dict[str, str], n: int, m: int) -> str:
