@@ -138,17 +138,65 @@ def main():
     print("=" * 60, "\n")
 
     text = """
-    Two roads diverged in a yellow wood,
-    And sorry I could not travel both
-    And be one traveler, long I stood
-    And looked down one as far as I could..., and I
-    I took the one less traveled by,
-    And that has made all the difference.
-    """
-    word = "could"
+    Volevo essere un duro 
+Che non gli importa del futuro 
+Un robot 
+Un lottatore di sumo 
+Uno spaccino in fuga da un cane lupo 
+Alla stazione di Bolo 
+Una gallina dalle uova d'oro 
+Però non sono nessuno 
+Non sono nato con la faccia da duro 
+Ho anche paura del buio 
+Se faccio a botte le prendo 
+Così mi truccano gli occhi di nero 
+Ma non ho mai perso tempo 
+È lui che mi ha lasciato indietro 
+Vivere la vita 
+È un gioco da ragazzi 
+Me lo diceva mamma ed io 
+Cadevo giù dagli alberi 
+Quanto è duro il mondo 
+Per quelli normali 
+Che hanno poco amore intorno 
+O troppo sole negli occhiali 
+Volevo essere un duro 
+Che non gli importa del futuro no 
+Un robot 
+Medaglia d'oro di sputo 
+Lo scippatore che t'aspetta nel buio 
+Il Re di Porta Portese 
+La gazza ladra che ti ruba la fede 
+Vivere la vita 
+È un gioco da ragazzi 
+Me lo diceva mamma ed io 
+Cadevo giù dagli alberi 
+Quanto è duro il mondo 
+Per quelli normali 
+Che hanno poco amore intorno 
+O troppo sole negli occhiali 
+Volevo essere un duro 
+Però non sono nessuno 
+Cintura bianca di Judo 
+Invece che una stella uno starnuto 
+I girasoli con gli occhiali mi hanno detto 
+"Stai attento alla luce" 
+E che le lune senza buche 
+Sono fregature 
+Perché in fondo è inutile fuggire 
+Dalle tue paure 
+Vivere la vita è un gioco da ragazzi 
+Io 
+Io volevo essere un duro 
+Però non sono nessuno 
+Non sono altro che Lucio 
+Non sono altro che Lucio
 
-    print("Text (excerpt):")
-    print(text.strip())
+    """
+    word = "perso"
+
+    print("Text :")
+    print(text.strip().lower())
     print("\nTarget word to encode:", f"'{word}'")
     print("-" * 60, "\n")
 

@@ -1,124 +1,107 @@
-import struct
-import polars as pl
-
-
-def digit_sum(num: str) -> int:
+def digit_sum(num : int):
     result = 0
-    for i in str(num):
-        result += int(i)
+    num_str = str(num)
+    for digit in num_str:
+        result += int(digit)
     return result
 
 
-def lz77_compress(text: str, window_size: int):
-    i = 0  # Current position
-    result = []  # List to store the output tuples
-    step = 1  # Step counter for display
+def lz77(
+    ruta_archivo, tam_ventana_historia, tam_ventana_futura, archivo_salida
+):
+    with open(ruta_archivo, "r") as archivo:
+        datos = archivo.read().lower().replace(" ", "").replace("\n", "")
 
-    while i < len(text):
-        best_match_distance = 0  # Offset for the best match
-        best_match_length = 0  # Length of the best match
-        start_window = max(0, i - window_size)  # Define search window
+    datos_comprimidos = []  # Almacena las tripletas
+    posicion_actual = tam_ventana_historia
+    paso = 1
 
-        # Print current state: index, search window, and lookahead buffer
-        print(f"Step {step}:")
-        print(f"  Current index (i): {i}")
-        print(f"  Search Window: '{text[start_window:i]}'")
-        print(f"  Lookahead Buffer: '{text[i : min(i + window_size, len(text))]}'")
+    with open(archivo_salida, "w") as salida:
+        while posicion_actual < len(datos):
+            # Determina los límites de la ventana histórica y de la ventana de búsqueda futura
+            inicio_ventana = max(0, posicion_actual - tam_ventana_historia)
+            fin_ventana_futura = min(posicion_actual + tam_ventana_futura, len(datos))
 
-        # Search for the longest match in the search window
-        for j in range(start_window, i):
-            length = 0
-            while i + length < len(text):
-                if j + length < i:
-                    if text[j + length] == text[i + length]:
-                        length += 1
-                    else:
-                        break
-                else:
-                    offset = i - j  # Effective fragment length
-                    if text[j + (length % offset)] == text[i + length]:
-                        length += 1
-                    else:
-                        break
+            # DefinE la ventana histórica y la ventana de búsqueda futura
+            ventana_historia = datos[inicio_ventana:posicion_actual]
+            ventana_futura = datos[posicion_actual:fin_ventana_futura]
 
-            if length > best_match_length:
-                best_match_length = length
-                best_match_distance = i - j
+            # Inicializa las variables para el desplazamiento y la longitud de coincidencia máxima
+            longitud_coincidencia = 0
+            desplazamiento_coincidencia = 0
+            siguiente_caracter = ""
 
-        if best_match_length > 0:
-            next_char = (
-                text[i + best_match_length]
-                if (i + best_match_length) < len(text)
-                else ""
+            # Busca la coincidencia más larga en la ventana de búsqueda
+            for i in range(len(ventana_historia)):
+                longitud = 0
+                while (
+                    i + longitud < len(ventana_historia)
+                    and longitud < len(ventana_futura)
+                    and ventana_historia[i + longitud] == ventana_futura[longitud]
+                ):
+                    longitud += 1
+
+                # Actualiza la coincidencia más larga encontrada
+                if longitud > longitud_coincidencia:
+                    longitud_coincidencia = longitud
+                    desplazamiento_coincidencia = len(ventana_historia) - i
+
+            # Determina el carácter siguiente y marcar espacio o salto de línea si corresponde
+            if longitud_coincidencia < len(ventana_futura):
+                siguiente_caracter = ventana_futura[longitud_coincidencia]
+                if siguiente_caracter == " ":
+                    siguiente_caracter = "esp"
+                elif siguiente_caracter == "\n":
+                    siguiente_caracter = "SDL"
+            else:
+                siguiente_caracter = ""
+
+            # Agrega la tripleta (desplazamiento, longitud, caracter) a los datos comprimidos
+            datos_comprimidos.append(
+                (desplazamiento_coincidencia, longitud_coincidencia, siguiente_caracter)
             )
-            print(
-                f"  Match found: Distance = {best_match_distance}, Length = {best_match_length}, Next Char = '{next_char}'"
+
+            # EscribE el paso y el estado de las ventanas en el archivo de salida
+            salida.write(f"Paso {paso}:\n")
+            salida.write(f"  Posición actual: {posicion_actual}\n")
+            salida.write(f"  Ventana histórica: ->{ventana_historia}<-\n")
+            salida.write(f"  Ventana futura: ->{ventana_futura}<-\n")
+            salida.write(
+                f"  Desplazamiento: {desplazamiento_coincidencia}, Longitud: {longitud_coincidencia}, Caracter: '{siguiente_caracter}'\n\n"
             )
-            result.append((best_match_distance, best_match_length, next_char))
-            i += best_match_length + 1
-        else:
-            print(f"  No match. Output literal: '{text[i]}'")
-            result.append((0, 0, text[i]))
-            i += 1
 
-        print("-" * 50)
-        step += 1
+            # Avanza A la posición actual
+            posicion_actual += (
+                longitud_coincidencia + 1
+                if siguiente_caracter
+                else longitud_coincidencia
+            )
+            paso += 1  # Incrementar el paso
 
-    return result
+        salida.write("Resultados finales de la compresión LZ77:\n")
+        for tripleta in datos_comprimidos:
+            salida.write(f"{tripleta}\n")
 
-
-def pack_compressed_data(compressed):
-    packed = bytearray()
-    for offset, length, ch in compressed:
-        # Encode the next character as ASCII (or a zero byte if missing)
-        byte_ch = ch.encode("ascii") if ch else b"\x00"
-        packed.extend(struct.pack("HHc", offset, length, byte_ch))
-    return bytes(packed)
+    return datos_comprimidos
 
 
 def main():
-    text = "abracadabraabracadabraabracadabraabracadabra"
-    window_size = digit_sum("2077518")  # Compute window size from digit sum
+    text_route = "lyrics.txt"
 
-    print("Input string:", text)
-    print("=" * 50)
-    compressed = lz77_compress(text, window_size)
+    window_size = 38
 
-    # Create a Polars DataFrame from the compression tuples
-    df = pl.DataFrame(
-        {
-            "Offset": [tpl[0] for tpl in compressed],
-            "Length": [tpl[1] for tpl in compressed],
-            "Char": [tpl[2] for tpl in compressed],
-        }
-    )
+    print(f"Usando ventana : {window_size}")
+    history = round(window_size * (2 / 3))
+    print(f"El tamaño de la ventana histórica es: {history}")
 
-    print("\nCompression result (Polars DataFrame):")
-    print(df)
+    lookahead = window_size - history
+    print(f"El tamaño de la ventana futura es: {lookahead}")
 
-    # Calculate the "real" sizes:
-    # Original size: the UTF-8 encoded text size in bytes.
-    original_bytes = text.encode("utf-8")
-    original_size = len(original_bytes)
+    output = f"results{window_size}.txt"
 
-    # Compressed size: pack the compression tuples into a binary string.
-    packed_compressed = pack_compressed_data(compressed)
-    compressed_size = len(packed_compressed)
+    lz77(text_route, history, lookahead, output)
 
-    print(
-        "\nReal memory size of original data (serialized): {} bytes".format(
-            original_size
-        )
-    )
-    print(
-        "Real memory size of compressed data (packed binary): {} bytes".format(
-            compressed_size
-        )
-    )
-
-    # Compression ratio (as a percentage of the original size)
-    ratio = (compressed_size / original_size) * 100
-    print("Compression ratio: {:.2f}%".format(ratio))
+    print(f"Resultados guardados en {output}")
 
 
 if __name__ == "__main__":
